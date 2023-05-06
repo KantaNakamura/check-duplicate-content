@@ -7,6 +7,32 @@ import (
 	"os"
 )
 
+
+// 消すべきコンテンツ（titleとauthorが完全に一致するコンテンツ）を探す
+func searchDeleteContent(rows [][]string) [][]string {
+	// titleとauthorが同じcontentが存在する行を特定してdelete_contentsに追加
+	delete_contents := [][]string{
+		rows[0],
+	}
+	// すでに同じtitle＆authorが存在するか確認
+	seen := make(map[string]bool)
+
+	// titleとauthorが完全に一致するコンテンツをdelete_contentsに追加
+	for _, row := range rows {
+		title := row[3]
+		author := row[6]
+		key := title + ":" + author
+		if seen[key] {
+			delete_contents = append(delete_contents, row)
+		} else {
+			seen[key] = true
+		}
+	}
+
+	return delete_contents
+}
+
+
 func main(){
 	// csvを読み込む
 	file, err := os.Open("content.csv")
@@ -22,30 +48,7 @@ func main(){
 		log.Fatal(err)
 	}
 
-
-	// titleとauthorが同じcontentが存在する行を特定してdelete_contentsに追加
-	delete_contents := [][]string{
-		rows[0],
-	}
-	// すでに同じtitle＆authorが存在するか確認
-	seen := make(map[string]bool)
-	// delete_contents内の重複を避けるための確認
-	is_exist_in_delete_list := make(map[string]bool)
-
-
-	// titleとauthorが完全に一致するコンテンツをdelete_contentsに追加
-	for _, row := range rows {
-		title := row[3]
-		author := row[6]
-		key := title + ":" + author
-		if seen[key] && !is_exist_in_delete_list[key] {
-			delete_contents = append(delete_contents, row)
-			is_exist_in_delete_list[key] = true
-		} else {
-			seen[key] = true
-		}
-	}
-
+	delete_contents := searchDeleteContent(rows)
 
 	// ここからcsvにdelete_contentsを書き込む
 	newDeleteFile, err := os.Create("delete.csv")
