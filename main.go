@@ -62,6 +62,7 @@ func main() {
 	w.WriteAll(delete_contents)
 
 
+	// それぞれのコンテンツのハッシュ値をkeyとしてマップにまとめる
     contentMap := make(map[uint32][][]string)
     for _, row := range rows {
 		title := row[3]
