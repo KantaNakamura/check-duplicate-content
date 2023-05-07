@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+    "hash/fnv"
+    // "strconv"
 )
 
 
 // 消すべきコンテンツ（titleとauthorが完全に一致するコンテンツ）を探す
-func searchDeleteContent(rows [][]string) [][]string {
-	// titleとauthorが同じcontentが存在する行を特定してdelete_contentsに追加
+func searchDeleteContent(rows [][]string) [][]string {	// titleとauthorが同じcontentが存在する行を特定してdelete_contentsに追加
 	delete_contents := [][]string{
 		rows[0],
 	}
@@ -33,7 +34,7 @@ func searchDeleteContent(rows [][]string) [][]string {
 }
 
 
-func main(){
+func main() {
 	// csvを読み込む
 	file, err := os.Open("content.csv")
 	if err != nil {
@@ -49,6 +50,7 @@ func main(){
 	}
 
 	delete_contents := searchDeleteContent(rows)
+	// confirmation_contents := 
 
 	// ここからcsvにdelete_contentsを書き込む
 	newDeleteFile, err := os.Create("delete.csv")
@@ -60,12 +62,30 @@ func main(){
 	w.WriteAll(delete_contents)
 
 
+    contentMap := make(map[uint32][][]string)
+    for _, row := range rows {
+		title := row[3]
+        h := CalculateHash(title)
+        contentMap[h] = append(contentMap[h], row)
+    }
+    // // マップのキーだけを出力する
+    // for k := range contentMap {
+    //     fmt.Println(k)
+    // }
+
+
 	// // ここからcsvに消すかどうか確認が必要なコンテンツを書き込む
-	// confirmationRequiredFile, err := os.Create("delete.csv")
+	// confirmationRequiredFile, err := os.Create("confirmation.csv")
 	// if err != nil {
 	// 	fmt.Println(err)
 	// }
 
 	// w := csv.NewWriter(confirmationRequiredFile)
-	// w.WriteAll(confirmation_content)
+	// w.WriteAll(confirmation_contents)
+}
+
+func CalculateHash(s string) uint32 {
+	h := fnv.New32a()
+    h.Write([]byte(s))
+    return h.Sum32()
 }
