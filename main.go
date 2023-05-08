@@ -8,9 +8,39 @@ import (
 )
 
 
+func main() {
+	// csvを読み込む
+	file, err := os.Open("content.csv")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	// 読み込んだcsvのデータをrowsに追加
+	r := csv.NewReader(file)
+	rows, err := r.ReadAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	delete_contents := searchDeleteContent(rows)
+	// confirmation_contents := 
+
+	// ここからcsvにdelete_contentsを書き込む
+	newDeleteFile, err := os.Create("delete.csv")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	w := csv.NewWriter(newDeleteFile)
+	w.WriteAll(delete_contents)
+	fmt.Println(len(rows))
+	fmt.Println(len(delete_contents))
+}
+
+
 // 消すべきコンテンツ（titleとauthorが完全に一致するコンテンツ）を探す
-func searchDeleteContent(rows [][]string) [][]string {
-	// titleとauthorが同じcontentが存在する行を特定してdelete_contentsに追加
+func searchDeleteContent(rows [][]string) [][]string {	// titleとauthorが同じcontentが存在する行を特定してdelete_contentsに追加
 	delete_contents := [][]string{
 		rows[0],
 	}
@@ -30,42 +60,4 @@ func searchDeleteContent(rows [][]string) [][]string {
 	}
 
 	return delete_contents
-}
-
-
-func main(){
-	// csvを読み込む
-	file, err := os.Open("content.csv")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	// 読み込んだcsvのデータをrowsに追加
-	r := csv.NewReader(file)
-	rows, err := r.ReadAll()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	delete_contents := searchDeleteContent(rows)
-
-	// ここからcsvにdelete_contentsを書き込む
-	newDeleteFile, err := os.Create("delete.csv")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	w := csv.NewWriter(newDeleteFile)
-	w.WriteAll(delete_contents)
-
-
-	// // ここからcsvに消すかどうか確認が必要なコンテンツを書き込む
-	// confirmationRequiredFile, err := os.Create("delete.csv")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-
-	// w := csv.NewWriter(confirmationRequiredFile)
-	// w.WriteAll(confirmation_content)
 }
